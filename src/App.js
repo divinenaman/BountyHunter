@@ -7,6 +7,8 @@ import Post from "./sourceCode/postJob";
 import Signin from "./sourceCode/signin";
 import AuthContext from "./sourceCode/AuthContext";
 import { ParallaxProvider } from "react-scroll-parallax";
+import Auth from './sourceCode/firebase';
+
 
 function App() {
   const [authToken, updateToken] = React.useState("")
@@ -15,6 +17,7 @@ function App() {
     updateToken: (token)=>updateToken(token)
   }
 
+  
   return (
   <AuthContext.Provider value={value}>
     <Router>

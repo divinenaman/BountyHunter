@@ -22,7 +22,7 @@ import { createMuiTheme } from "@material-ui/core/styles";
 import { green, grey, red } from "@material-ui/core/colors";
 import AuthContext from "./AuthContext";
 import Auth from "./firebase";
-
+import {Redirect} from 'react-router-dom';
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
@@ -72,32 +72,25 @@ const useStyles = makeStyles((theme) => ({
 }));
 
  function handleSubmit(e,fields,updateToken){
-  
- fetch(`${window.location.origin}/signin`,{
-   method: "POST",
-   body: JSON.stringify(fields),
-   headers: {"Content-Type": "application/json"}
- }).then(res=>window.location.href=`${window.location.origin}/dashboard`)
-//  .then(data=>{
-//     if(data.status==="success"){
-//           window.location.href = `${window.location.origin}/dashboard`
-//         }
-//       else{
-//         window.location.href = `${window.location.origin}/signin`
-//       }
-//     })
+  e.preventDefault()
+  Auth.signInWithEmailAndPassword(fields.email, fields.password).then(x=>{
+    console.log(x)
+    window.location.assign('/dashboard')
+  });
 }
 
 
 export default function SignIpSide() {
   const classes = useStyles();
-  const [username,updateUid] = useState("");
+  const [email,updateEmail] = useState("");
   const [password,updatePassword] = useState("");
 
   return (
     <AuthContext.Consumer>
     {(token,updateToken)=>(
-    <Grid container component="main" className={classes.root}>
+    <>
+    {!token?
+    (<Grid container component="main" className={classes.root}>
       <CssBaseline />
       <Grid item xs={false} sm={4} md={7} className={classes.image} />
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
@@ -108,7 +101,7 @@ export default function SignIpSide() {
           <Typography component="h1" variant="h5">
             Sign In
           </Typography>
-          <form className={classes.form} noValidate onSubmit={(e)=>handleSubmit(e,{username,password},updateToken)}>
+          <form className={classes.form} noValidate onSubmit={(e)=>handleSubmit(e,{email,password},updateToken)}>
             
             <TextField
               variant="outlined"
@@ -119,8 +112,8 @@ export default function SignIpSide() {
               label="Username"
               name="username"
               autoFocus
-              value = {username}
-              onChange={(e)=>updateUid(e.target.value)}
+              value = {email}
+              onChange={(e)=>updateEmail(e.target.value)}
             />
             <TextField
               variant="outlined"
@@ -131,6 +124,7 @@ export default function SignIpSide() {
               label="Password"
               type="password"
               id="password"
+              value = {password}
               onChange={(e)=>updatePassword(e.target.value)}
             />
             <Button
@@ -155,7 +149,8 @@ export default function SignIpSide() {
           </form>
         </div>
       </Grid>
-    </Grid>
+    </Grid>):<Redirect to="/dashboard" />}
+    </>
     )}
     </AuthContext.Consumer>
   );

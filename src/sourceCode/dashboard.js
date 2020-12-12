@@ -16,6 +16,9 @@ import Addmoney from "./addmoney";
 import PersonIcon from "@material-ui/icons/Person";
 import Hunt from "./hunt";
 import Chat from "../chat/chatMaster";
+import AuthContext from "./AuthContext";
+import {Redirect} from 'react-router-dom';
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -69,7 +72,11 @@ export default function ScrollableTabsButtonForce() {
   };
 
   return (
-    <div className={classes.root}>
+    <AuthContext.Consumer>
+    {(token,updateToken)=>(
+    <>
+    {token?
+    (<div className={classes.root}>
       <AppBar position="static" color="default">
         <Tabs
           value={value}
@@ -111,6 +118,9 @@ export default function ScrollableTabsButtonForce() {
       <TabPanel value={value} index={5}>
         Profile
       </TabPanel>
-    </div>
+    </div>):<Redirect to="/signin" />}
+    </>
+    )}
+    </AuthContext.Consumer>
   );
 }

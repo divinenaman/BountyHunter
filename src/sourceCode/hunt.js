@@ -17,6 +17,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import AddBoxIcon from "@material-ui/icons/AddBox";
 import eximage from "../svgs/image1.svg";
+import Auth,{db} from "./firebase";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,6 +43,22 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function getData(){
+  return new Promise((resolve,reject)=>{
+    db.collection("jobs").get().then((querySnapshot) => {
+      resolve(querySnapshot)
+    });
+  })
+}
+
+function manageData(doc){
+  const data = []
+  doc.forEach(x=>{
+    data.push({...x.data(),id:x.id})
+  })
+  return data
+}
+
 export default function RecipeReviewCard() {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
@@ -50,65 +67,65 @@ export default function RecipeReviewCard() {
     setExpanded(!expanded);
   };
 
-  useEffect(() => {
-    fetch(`${window.location.origin}/jobs`)
-      .then((res) => res.json())
-      .then((data) => updateJobs(data));
-  });
+  useEffect(async () => {
+    const doc = await getData()
+    const data = await manageData(doc)
+    updateJobs(data)
+  },[]);
 
   return (
     <>
-      {jobs.map((x) => (
-        <Card className={classes.root}>
-          <CardHeader
-            avatar={
-              <Avatar aria-label="recipe" className={classes.avatar}>
-                R
-              </Avatar>
-            }
-            action={
-              <IconButton aria-label="settings">
-                <MoreVertIcon />
-              </IconButton>
-            }
-            title={x.date}
-            subheader={x.time}
-          />
-          <CardMedia
-            className={classes.media}
-            image={eximage}
-            title={x.reward}
-          />
-          <CardContent>
-            <Typography variant="body2" color="textSecondary" component="p">
-              {x.desc}
-            </Typography>
-          </CardContent>
-          <CardActions disableSpacing>
-            <IconButton aria-label="add to favorites">
-              <AddBoxIcon /> Accept
-            </IconButton>
-            <IconButton aria-label="share">
-              <ShareIcon /> Share
-            </IconButton>
-            <IconButton
-              className={clsx(classes.expand, {
-                [classes.expandOpen]: expanded,
-              })}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon />
-            </IconButton>
-          </CardActions>
-          <Collapse in={expanded} timeout="auto" unmountOnExit>
-            <CardContent>
-              <Typography paragraph>{x.location}</Typography>
-            </CardContent>
-          </Collapse>
-        </Card>
+    {jobs.map((x,i) => (
+      <Card className={classes.root} key={x.id}>
+      <CardHeader
+      avatar={
+        <Avatar aria-label="recipe" className={classes.avatar}>
+        R
+        </Avatar>
+      }
+      action={
+        <IconButton aria-label="settings">
+        <MoreVertIcon />
+        </IconButton>
+      }
+      title={x.date}
+      subheader={x.time}
+      />
+      <CardMedia
+      className={classes.media}
+      image={eximage}
+      title={x.reward}
+      />
+      <CardContent>
+      <Typography variant="body2" color="textSecondary" component="p">
+      {x.desc}
+      </Typography>
+      </CardContent>
+      <CardActions disableSpacing>
+      <IconButton aria-label="add to favorites">
+      <AddBoxIcon /> Accept
+      </IconButton>
+      <IconButton aria-label="share">
+      <ShareIcon /> Share
+      </IconButton>
+      <IconButton
+      className={clsx(classes.expand, {
+        [classes.expandOpen]: expanded,
+      })}
+      onClick={handleExpandClick}
+      aria-expanded={expanded}
+      aria-label="show more"
+      >
+      <ExpandMoreIcon />
+      </IconButton>
+      </CardActions>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+      <CardContent>
+      <Typography paragraph>{x.location}</Typography>
+      </CardContent>
+      </Collapse>
+      </Card>
       ))}
     </>
-  );
-}
+    );
+  }

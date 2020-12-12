@@ -16,6 +16,9 @@ import RadioGroup from "@material-ui/core/RadioGroup";
 import Radio from "@material-ui/core/Radio";
 import FormLabel from "@material-ui/core/FormLabel";
 import FormControl from "@material-ui/core/FormControl";
+import {Redirect} from 'react-router-dom';
+import Auth from "./firebase";
+import AuthContext from "./AuthContext";
 
 function Copyright() {
   return (
@@ -67,23 +70,24 @@ const useStyles = makeStyles((theme) => ({
 function handleSubmit(fields, confirm) {
   console.log(fields);
   if (fields.password === confirm) {
-    fetch(`${window.location.origin}/signup`, {
-      method: "POST",
-      headers: { "Content-type": "application/json" },
-      body: JSON.stringify(fields),
+    Auth.createUserWithEmailAndPassword(fields.email,fields.password).then(creds=>{
+      console.log(creds)
+      creds.user.updateProfile({
+        displayName: fields.displayName,
+        phoneNumber: fields.mobile,
+      })
+    }).then(user=>{
+      console.log(user)
+      window.location.assign('/dashboard')
+    }).catch(err=>{
+      console.log(err)
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success") {
-          window.location.href = `${window.location.origin}/signin`;
-        }
-      });
   }
 }
 
 export default function SignUpSide() {
   const classes = useStyles();
-  const [name, updateName] = useState("");
+  const [displayName, updateName] = useState("");
   const [username, updateUid] = useState("");
   const [password, updatePassword] = useState("");
   const [cP, updateCp] = useState("");
@@ -91,7 +95,11 @@ export default function SignUpSide() {
   const [email, updateEmail] = useState("");
 
   return (
-    <Grid container component="main" className={classes.root}>
+    <AuthContext.Consumer>
+    {(token,updateToken)=>(
+    <>
+    {!token?
+    (<Grid container component="main" className={classes.root}>
       <CssBaseline />
       <Grid item xs={false} sm={4} md={7} className={classes.image} />
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
@@ -113,7 +121,7 @@ export default function SignUpSide() {
             name="Name"
             autoComplete="Name"
             autoFocus
-            value={name}
+            value={displayName}
             onChange={(e) => updateName(e.target.value)}
           />
 
@@ -204,7 +212,7 @@ export default function SignUpSide() {
             color="#953C25"
             className={classes.submit}
             onClick={() =>
-              handleSubmit({ name, username, password, email, mobile }, cP)
+              handleSubmit({ displayName, username, password, email, mobile }, cP)
             }
           >
             Sign Up
@@ -221,6 +229,9 @@ export default function SignUpSide() {
           </Box>
         </div>
       </Grid>
-    </Grid>
+    </Grid>):<Redirect to="/dashboard" />}
+    </>
+    )}
+    </AuthContext.Consumer>
   );
 }

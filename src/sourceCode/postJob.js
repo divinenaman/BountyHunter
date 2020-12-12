@@ -12,7 +12,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
-
+import Auth,{db} from "./firebase";
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -60,14 +60,33 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function handleSubmit(fields) {
-  fetch(`${window.location.origin}/jobs`, {
-    method: "POST",
-    body: JSON.stringify(fields),
-    headers: { "Content-Type": "application/json" },
-  })
-    .then((res) => res.json())
-    .then((data) => console.log(data));
+function setInterval(updateStatus){
+  setTimeout(()=>{
+    updateStatus("")
+  },3000)
+}
+
+async function handleSubmit(e,{desc,date,time,reward,location},updateStatus) {
+  e.preventDefault()
+  console.log(desc+date+time+reward+location)
+  try{
+    const user = await Auth.currentUser.email
+    console.log(user)
+    await db.collection('jobs').add({
+      user,
+      desc,
+      date,
+      time,
+      reward,
+      location
+    })
+    updateStatus("Success")
+    setInterval(updateStatus)
+  }
+  catch(e){
+    updateStatus("Try again")
+    setInterval(updateStatus) 
+  }
 }
 
 export default function SignUp() {
@@ -76,7 +95,7 @@ export default function SignUp() {
   const [time, updateTime] = useState("");
   const [reward, updateReward] = useState("");
   const [location, updateLocation] = useState("");
-
+  const [status,updateStatus] = useState("");
   const classes = useStyles();
   return (
     <Container component="main" maxWidth="sm">
@@ -91,7 +110,7 @@ export default function SignUp() {
         <form
           className={classes.form}
           noValidate
-          onSubmit={(e) => handleSubmit({ desc, date, time, reward, location })}
+          onSubmit={(e) => handleSubmit(e,{ desc, date, time, reward, location },updateStatus)}
         >
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -192,6 +211,9 @@ export default function SignUp() {
           </Button>
         </form>
       </div>
+      <Typography variant="h2">
+        {status?status:""}
+      </Typography>
     </Container>
   );
 }
